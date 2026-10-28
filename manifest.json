@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "自定义仪表盘",
+  "version": "1.0.0",
+  "description": "可自定义的小组件仪表盘：添加小组件、自定义网站、自动刷新。已剔除所有需要授权/登录的部分（本地服务、飞书/SSO、Native Messaging 等）。",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "chrome_url_overrides": {
+    "newtab": "index.html"
+  },
+  "action": {
+    "default_title": "自定义仪表盘"
+  },
+  "permissions": [
+    "storage"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; img-src 'self' data: blob: https: http:; frame-src 'self' https: http:;"
+  }
+}
