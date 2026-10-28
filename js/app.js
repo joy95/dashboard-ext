@@ -159,6 +159,78 @@ function openSettingsModal() {
   });
 }
 
+// ---- 配置备份 / 迁移 ----
+function normalizeWidget(raw) {
+  const def = Widgets.get(raw && raw.type);
+  if (!def) return null;
+  const base = Widgets.create(raw.type);
+  return {
+    id: raw.id && typeof raw.id === "string" ? raw.id : base.id,
+    type: raw.type,
+    title: raw.title || base.title,
+    span:
+      Array.isArray(raw.span) &&
+      raw.span.length === 2 &&
+      raw.span.every(Number.isFinite)
+        ? raw.span.slice()
+        : base.span.slice(),
+    config: Object.assign(
+      {},
+      base.config,
+      raw.config && typeof raw.config === "object" ? raw.config : {}
+    ),
+  };
+}
+
+function exportConfig() {
+  const data = {
+    app: "custom-dashboard",
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    widgets: Store.getWidgets(),
+    settings: Store.getSettings(),
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {
+    type: "application/json",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "dashboard-config-" + new Date().toISOString().slice(0, 10) + ".json";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function importConfig(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (!data || !Array.isArray(data.widgets)) {
+        throw new Error("文件格式不正确：缺少 widgets 数组");
+      }
+      if (!confirm("导入将覆盖当前所有小组件与设置，确定继续？")) return;
+      const widgets = data.widgets.map(normalizeWidget).filter(Boolean);
+      Store.setWidgets(widgets);
+      if (data.settings && typeof data.settings === "object") {
+        Store.setSettings(data.settings);
+      }
+      Store.save().then(() => {
+        applyTheme();
+        Grid.render();
+        Modal.close();
+        alert("配置导入成功，共 " + widgets.length + " 个组件。");
+      });
+    } catch (e) {
+      alert("导入失败：" + e.message);
+    }
+  };
+  reader.onerror = () => alert("读取文件失败");
+  reader.readAsText(file);
+}
+
 // ---- 工具栏 ----
 function wireToolbar() {
   const editBtn = document.getElementById("btn-edit");
@@ -171,6 +243,14 @@ function wireToolbar() {
   document.getElementById("btn-add").onclick = openPicker;
   document.getElementById("btn-settings").onclick = openSettingsModal;
   document.getElementById("btn-refresh-all").onclick = () => location.reload();
+  const importFile = document.getElementById("import-file");
+  document.getElementById("btn-export").onclick = exportConfig;
+  document.getElementById("btn-import").onclick = () => importFile.click();
+  importFile.onchange = (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (f) importConfig(f);
+    e.target.value = "";
+  };
 }
 
 // ---- 启动 ----

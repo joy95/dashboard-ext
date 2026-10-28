@@ -40,6 +40,7 @@ const Store = (() => {
   }
 
   async function save() {
+    if (!state) return;
     await chrome.storage.local.set({
       [KEY]: { widgets: state.widgets, settings: state.settings },
     });
