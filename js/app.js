@@ -28,20 +28,26 @@ const escHtml = (s) =>
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 
-// ---- 默认布局（首次使用）----
+// ---- 默认布局（首次使用）：给定坐标，避免重叠 ----
 function seed() {
-  return [
+  const m = [
     Widgets.create("clock"),
     Widgets.create("calendar"),
     Widgets.create("todo"),
     Widgets.create("notes"),
     Widgets.create("links"),
   ];
+  m[0].x = 0; m[0].y = 0; // 时钟 2×1
+  m[1].x = 0; m[1].y = 1; // 日历 3×3
+  m[2].x = 3; m[2].y = 0; // 待办 2×2
+  m[3].x = 5; m[3].y = 0; // 随手记 2×2
+  m[4].x = 3; m[4].y = 2; // 常用链接 2×2
+  return m;
 }
 
 // ---- 主题 ----
 function applyTheme() {
-  const t = Store.getSettings().theme || "olive-dark";
+  const t = Store.getSettings().theme || "lavender";
   document.documentElement.dataset.theme = t;
 }
 
@@ -78,6 +84,9 @@ function openPicker() {
         card.onclick = () => {
           const type = card.dataset.type;
           const w = Widgets.create(type);
+          const [x, y] = Grid.findFreeSpot(w.w, w.h);
+          w.x = x;
+          w.y = y;
           const arr = Store.getWidgets();
           arr.push(w);
           Store.setWidgets(arr);
@@ -98,12 +107,12 @@ function openSettingsModal() {
   const body = `
     <div class="field"><label>主题</label>
       <select id="set-theme">
-        <option value="olive-dark" ${
-          s.theme === "olive-dark" ? "selected" : ""
-        }>橄榄绿（暗）</option>
-        <option value="light" ${
-          s.theme === "light" ? "selected" : ""
-        }>浅色</option>
+        <option value="lavender" ${
+          s.theme === "lavender" ? "selected" : ""
+        }>浅紫（白底）</option>
+        <option value="lavender-dark" ${
+          s.theme === "lavender-dark" ? "selected" : ""
+        }>浅紫（暗）</option>
       </select>
     </div>
     <div class="toggle-row">
@@ -164,16 +173,25 @@ function normalizeWidget(raw) {
   const def = Widgets.get(raw && raw.type);
   if (!def) return null;
   const base = Widgets.create(raw.type);
+  let x = Number.isFinite(raw.x) ? raw.x : 0;
+  let y = Number.isFinite(raw.y) ? raw.y : 0;
+  let w = Number.isFinite(raw.w) ? raw.w : base.w;
+  let h = Number.isFinite(raw.h) ? raw.h : base.h;
+  // 兼容旧版 span:[c,r] 格式
+  if (Array.isArray(raw.span) && raw.span.length === 2) {
+    if (!Number.isFinite(raw.w)) w = Number.isFinite(raw.span[0]) ? raw.span[0] : base.w;
+    if (!Number.isFinite(raw.h)) h = Number.isFinite(raw.span[1]) ? raw.span[1] : base.h;
+  }
+  w = Math.max(1, Math.min(12, w));
+  h = Math.max(1, h);
   return {
     id: raw.id && typeof raw.id === "string" ? raw.id : base.id,
     type: raw.type,
     title: raw.title || base.title,
-    span:
-      Array.isArray(raw.span) &&
-      raw.span.length === 2 &&
-      raw.span.every(Number.isFinite)
-        ? raw.span.slice()
-        : base.span.slice(),
+    x,
+    y,
+    w,
+    h,
     config: Object.assign(
       {},
       base.config,
@@ -264,4 +282,5 @@ function wireToolbar() {
   Grid.render();
   wireToolbar();
   setupGlobalAutoRefresh();
+  window.addEventListener("resize", Grid.relayout);
 })();

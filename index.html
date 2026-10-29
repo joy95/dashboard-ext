@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="olive-dark">
+<html lang="zh-CN" data-theme="lavender">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>自定义仪表盘</title>
   <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="lib/gridstack.css" />
 </head>
 <body>
   <header class="topbar">
@@ -23,10 +24,11 @@
     </div>
   </header>
 
-  <main id="grid" class="grid"></main>
+  <main id="grid" class="grid-stack grid"></main>
 
   <div id="modal-root"></div>
 
+  <script src="lib/gridstack-all.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/widgets.js"></script>
   <script src="js/grid.js"></script>

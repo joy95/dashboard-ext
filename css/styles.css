@@ -1,32 +1,32 @@
 /* ===== 主题变量 ===== */
 :root,
-[data-theme="olive-dark"] {
-  --bg: #14170f;
-  --bg-soft: #1b1f16;
-  --panel: #232a1c;
-  --panel-2: #2b3322;
-  --border: #38432b;
-  --text: #e9efe0;
-  --text-dim: #9fb088;
-  --accent: #8aab4c;
-  --accent-strong: #a7c75a;
-  --danger: #d9755b;
-  --shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+[data-theme="lavender"] {
+  --bg: #f5f3fb;
+  --bg-soft: #ffffff;
+  --panel: #ffffff;
+  --panel-2: #f1ecfb;
+  --border: #e4dcf2;
+  --text: #2c2540;
+  --text-dim: #8b7fb0;
+  --accent: #a78bfa;
+  --accent-strong: #7c3aed;
+  --danger: #e0556e;
+  --shadow: 0 8px 24px rgba(124, 58, 237, 0.12);
   --radius: 14px;
 }
 
-[data-theme="light"] {
-  --bg: #f4f6ef;
-  --bg-soft: #eef1e6;
-  --panel: #ffffff;
-  --panel-2: #f6f8f0;
-  --border: #d8e0c8;
-  --text: #2b3320;
-  --text-dim: #6f7d59;
-  --accent: #6f9233;
-  --accent-strong: #5c7d28;
-  --danger: #c0492f;
-  --shadow: 0 8px 24px rgba(60, 70, 40, 0.12);
+[data-theme="lavender-dark"] {
+  --bg: #181425;
+  --bg-soft: #211a33;
+  --panel: #281f3d;
+  --panel-2: #322648;
+  --border: #453463;
+  --text: #f1ecfb;
+  --text-dim: #b0a3cf;
+  --accent: #a78bfa;
+  --accent-strong: #c4b5fd;
+  --danger: #f0728e;
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
   --radius: 14px;
 }
 
@@ -40,7 +40,7 @@ html, body {
 
 body {
   background:
-    radial-gradient(1200px 600px at 80% -10%, rgba(138, 171, 76, 0.10), transparent 60%),
+    radial-gradient(1200px 600px at 80% -10%, rgba(167, 139, 250, 0.12), transparent 60%),
     var(--bg);
   color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
@@ -75,7 +75,7 @@ body {
   height: 14px;
   border-radius: 4px;
   background: linear-gradient(135deg, var(--accent-strong), var(--accent));
-  box-shadow: 0 0 12px rgba(138, 171, 76, 0.6);
+  box-shadow: 0 0 12px rgba(167, 139, 250, 0.6);
 }
 
 .brand-name { font-size: 15px; }
@@ -104,26 +104,30 @@ body {
 .btn-primary {
   background: linear-gradient(135deg, var(--accent-strong), var(--accent));
   border-color: transparent;
-  color: #11160b;
+  color: #ffffff;
   font-weight: 600;
 }
 .btn-primary:hover { filter: brightness(1.05); }
 .btn-danger { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 50%, var(--border)); }
 
-/* ===== 网格 ===== */
+/* ===== 网格（绝对定位自由布局）===== */
 .grid {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  grid-auto-rows: 92px;
-  grid-auto-flow: row dense;
-  gap: 14px;
-  padding: 20px;
+  position: relative;
+  min-height: 60vh;
   max-width: 1500px;
   margin: 0 auto;
-  align-items: start;
+  padding: 0;
+}
+.grid.editing {
+  background-image:
+    linear-gradient(to right, rgba(167, 139, 250, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(167, 139, 250, 0.06) 1px, transparent 1px);
+  background-size: calc(100% / 12) 104px;
 }
 
 .widget {
+  height: 100%;
+  width: 100%;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -132,11 +136,57 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  transition: border-color 0.15s ease, transform 0.08s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
-.grid.editing .widget { cursor: grab; }
-.grid.editing .widget:active { cursor: grabbing; }
-.grid.editing .widget:hover { border-color: var(--accent); }
+.grid.editing .widget {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+}
+.grid.editing .widget:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+/* 拖拽中 / 缩放中的卡片高亮（gridstack 会给 item 加对应类）*/
+.grid-stack-item.ui-draggable-dragging .widget,
+.grid-stack-item.ui-resizable-resizing .widget {
+  border-color: var(--accent);
+  box-shadow: 0 12px 30px rgba(124, 58, 237, 0.25);
+}
+
+/* ===== gridstack 适配 ===== */
+.grid-stack { position: relative; }
+.grid-stack-item-content {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: visible;
+  border-radius: var(--radius);
+}
+/* 缩放手柄（右下角，仅编辑态可见）*/
+.grid-stack-resize-handle,
+.grid-stack-item > .ui-resizable-handle {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 16px;
+  height: 16px;
+  cursor: nwse-resize;
+  z-index: 7;
+  touch-action: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  background: linear-gradient(
+    135deg,
+    transparent 45%,
+    var(--accent) 45%,
+    var(--accent) 62%,
+    transparent 62%
+  );
+  border-radius: 0 0 6px 0;
+}
+.grid.editing .grid-stack-resize-handle,
+.grid.editing .grid-stack-item > .ui-resizable-handle { opacity: 1; }
 
 .widget-content {
   flex: 1;
@@ -156,7 +206,12 @@ body {
   background: var(--panel-2);
   border-bottom: 1px solid var(--border);
   font-size: 12px;
+  cursor: grab;
+  position: relative;
+  z-index: 6;
+  touch-action: none;
 }
+.widget-edit-bar:active { cursor: grabbing; }
 .widget-edit-bar .drag-handle { cursor: grab; color: var(--text-dim); }
 .widget-edit-bar .w-title { flex: 1; font-weight: 600; }
 .widget-edit-bar .w-actions { display: flex; gap: 4px; }
@@ -219,7 +274,7 @@ body {
   font-size: 12px; border-radius: 8px; min-height: 22px;
 }
 .cal-cell.muted { color: var(--text-dim); opacity: 0.4; }
-.cal-cell.today { background: var(--accent); color: #11160b; font-weight: 700; }
+.cal-cell.today { background: var(--accent); color: #ffffff; font-weight: 700; }
 
 .todo-head, .notes-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-weight: 600; }
 .todo-add { display: flex; gap: 6px; margin-bottom: 8px; }

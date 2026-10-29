@@ -2,7 +2,7 @@
 const Store = (() => {
   const KEY = "dashboard.state.v1";
   const DEFAULT_SETTINGS = {
-    theme: "olive-dark",
+    theme: "lavender",
     autoRefresh: { enabled: false, interval: 30 }, // 整页自动刷新（分钟），默认关闭
   };
 

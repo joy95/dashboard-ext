@@ -717,11 +717,15 @@ const Widgets = (() => {
   function create(type, overrides = {}) {
     const def = TYPES[type];
     if (!def) throw new Error("unknown widget type: " + type);
+    const ds = def.defaultSpan || [2, 2];
     return {
       id: uid(),
       type,
       title: overrides.title || def.name,
-      span: overrides.span ? overrides.span.slice() : def.defaultSpan.slice(),
+      x: overrides.x != null ? overrides.x : 0,
+      y: overrides.y != null ? overrides.y : 0,
+      w: overrides.w != null ? overrides.w : ds[0],
+      h: overrides.h != null ? overrides.h : ds[1],
       config: Object.assign(def.createConfig(), overrides.config || {}),
     };
   }
