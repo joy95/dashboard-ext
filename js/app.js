@@ -158,7 +158,8 @@ function openSettingsModal() {
         setupGlobalAutoRefresh();
       };
       c.querySelector("#set-reset").onclick = async () => {
-        if (!confirm("将清空所有小组件并恢复默认布局，确定？")) return;
+        if (!confirm("将清空所有小组件并恢复默认布局，确定？\n（操作前会自动下载一份当前配置作为备份）")) return;
+        exportConfig(); // 先备份当前布局到本地文件，防止误清空丢数据
         Store.setWidgets(seed());
         await Store.save();
         Modal.close();
@@ -230,7 +231,14 @@ function importConfig(file) {
         throw new Error("文件格式不正确：缺少 widgets 数组");
       }
       if (!confirm("导入将覆盖当前所有小组件与设置，确定继续？")) return;
-      const widgets = data.widgets.map(normalizeWidget).filter(Boolean);
+      const rawList = Array.isArray(data.widgets) ? data.widgets : [];
+      const widgets = [];
+      let skipped = 0;
+      for (const raw of rawList) {
+        const nw = normalizeWidget(raw);
+        if (nw) widgets.push(nw);
+        else skipped++;
+      }
       Store.setWidgets(widgets);
       if (data.settings && typeof data.settings === "object") {
         Store.setSettings(data.settings);
@@ -239,7 +247,9 @@ function importConfig(file) {
         applyTheme();
         Grid.render();
         Modal.close();
-        alert("配置导入成功，共 " + widgets.length + " 个组件。");
+        let msg = "配置导入成功，共 " + widgets.length + " 个组件。";
+        if (skipped) msg += "（已跳过 " + skipped + " 个不支持的组件）";
+        alert(msg);
       });
     } catch (e) {
       alert("导入失败：" + e.message);

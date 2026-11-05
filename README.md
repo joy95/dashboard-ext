@@ -58,3 +58,4 @@ dashboard-ext/
 ## 如何扩展新组件
 
 在 `js/widgets.js` 的 `TYPES` 中新增一项，实现 `render(el, w, api)` 与可选的 `editor()` 即可自动出现在「添加小组件」面板；尺寸无需声明，编辑态拖右下角自由缩放。数据型组件把状态写到 `w.config`，通过 `api.save()` 持久化。
+

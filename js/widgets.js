@@ -217,12 +217,28 @@ const Widgets = (() => {
           )}</textarea>`;
         const ta = el.querySelector(".notes-area");
         let timer = null;
+        let saved = w.config.text || "";
+        const flush = () => {
+          if (timer) { clearTimeout(timer); timer = null; }
+          const v = ta.value;
+          if (v !== saved) { w.config.text = v; saved = v; Store.save(); }
+        };
         ta.oninput = () => {
           clearTimeout(timer);
           timer = setTimeout(() => {
             w.config.text = ta.value;
+            saved = ta.value;
             Store.save();
           }, 600);
+        };
+        // 标签页隐藏/关闭前强制保存，避免防抖期间丢末几个字
+        const onVis = () => {
+          if (document.visibilityState === "hidden") flush();
+        };
+        document.addEventListener("visibilitychange", onVis);
+        el._cleanup = () => {
+          flush();
+          document.removeEventListener("visibilitychange", onVis);
         };
       },
     },
